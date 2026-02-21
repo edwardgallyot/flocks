@@ -13,7 +13,8 @@ Processor::Processor() :
         make_param(Parameter::Reverb),
         make_param(Parameter::Cutoff),
         make_param(Parameter::Reverse)
-    })
+    }),
+    sampler()
 {
 }
 
@@ -27,7 +28,24 @@ const juce::String Processor::get_name() const
     return JucePlugin_Name;
 }
 
+void Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
+{
+    this->sampler.prepare(sampleRate, samplesPerBlock);
+}
+
+void Processor::processBlock (juce::AudioBuffer<float>& samples, juce::MidiBuffer& midi)
+{
+    this->sampler.process(samples, midi);
+}
+
+void Processor::releaseResources()
+{
+    this->sampler.release();
+}
+
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new Processor();
 }
+
+
