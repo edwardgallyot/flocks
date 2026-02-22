@@ -1,3 +1,4 @@
+
 #include "flocks_processor.hpp"
 #include "flocks_editor.hpp"
 #include "flocks_params.hpp"
@@ -5,7 +6,8 @@
 using namespace flocks;
 
 Processor::Processor() :
-    params(*this, {
+    arena(),
+    params(arena.make_unique<aminals::Parameter_List>(*this, juce::AudioProcessorValueTreeState::ParameterLayout {
         make_param(Parameter::Bypass),
         make_param(Parameter::Volume),
         make_param(Parameter::Attack),
@@ -13,8 +15,12 @@ Processor::Processor() :
         make_param(Parameter::Reverb),
         make_param(Parameter::Cutoff),
         make_param(Parameter::Reverse)
-    }),
-    sampler()
+    })),
+    sampler(arena.make_unique<aminals::Sampler>())
+{
+}
+
+Processor::~Processor()
 {
 }
 
@@ -30,17 +36,17 @@ const juce::String Processor::get_name() const
 
 void Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    this->sampler.prepare(sampleRate, samplesPerBlock);
+    this->sampler->prepare(sampleRate, samplesPerBlock);
 }
 
 void Processor::processBlock (juce::AudioBuffer<float>& samples, juce::MidiBuffer& midi)
 {
-    this->sampler.process(samples, midi);
+    this->sampler->process(samples, midi);
 }
 
 void Processor::releaseResources()
 {
-    this->sampler.release();
+    this->sampler->release();
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

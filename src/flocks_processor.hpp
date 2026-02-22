@@ -3,6 +3,7 @@
 #include "aminals_processor.hpp"
 #include "aminals_parameter_list.hpp"
 #include "aminals_sampler.hpp"
+#include "aminals_arena.hpp"
 
 namespace flocks
 {
@@ -13,6 +14,7 @@ public:
     using aminals::Processor::processBlock;
     
     Processor();
+    ~Processor();
     
     juce::AudioProcessorEditor* create_editor() override;
     const juce::String get_name() const override;
@@ -22,7 +24,9 @@ public:
     void releaseResources() override; 
     
 private:
-    aminals::Parameter_List params;
-    aminals::Sampler sampler;
+    using Arena = aminals::Arena<1024*1024>;
+    Arena arena;
+    Arena::Ptr<aminals::Parameter_List> params;
+    Arena::Ptr<aminals::Sampler> sampler;
 };
 }
