@@ -31,13 +31,12 @@ namespace flocks
         return get_param_name(p);
     }
 
-    std::unique_ptr<juce::RangedAudioParameter> make_param(Parameter p)
+    template <Parameter P>
+    std::unique_ptr<juce::RangedAudioParameter> make_param()
     {
-        const juce::String id   { get_param_id(p) };
-        const juce::String name { get_param_name(p) };
-        const juce::ParameterID pid { id, 1 };
-
-        switch (p)
+        const auto pid = get_param_id(P);
+        const auto name = get_param_name(P);
+        switch (P)
         {
             case Parameter::Bypass:
                 return std::make_unique<juce::AudioParameterBool>(
@@ -97,3 +96,4 @@ namespace flocks
         return {};
     }
 }
+ 

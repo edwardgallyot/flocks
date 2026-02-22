@@ -8,13 +8,13 @@ using namespace flocks;
 Processor::Processor() :
     arena(),
     params(arena.make_unique<aminals::Parameter_List>(*this, juce::AudioProcessorValueTreeState::ParameterLayout {
-        make_param(Parameter::Bypass),
-        make_param(Parameter::Volume),
-        make_param(Parameter::Attack),
-        make_param(Parameter::Release),
-        make_param(Parameter::Reverb),
-        make_param(Parameter::Cutoff),
-        make_param(Parameter::Reverse)
+        make_param<Parameter::Bypass>(),
+        make_param<Parameter::Volume>(),
+        make_param<Parameter::Attack>(),
+        make_param<Parameter::Release>(),
+        make_param<Parameter::Reverb>(),
+        make_param<Parameter::Cutoff>(),
+        make_param<Parameter::Reverse>()
     })),
     sampler(arena.make_unique<aminals::Sampler>())
 {
