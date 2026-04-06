@@ -36,6 +36,8 @@ const juce::String Processor::get_name() const
 
 void Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    // TODO(edg): Set this up so it takes a global location!
+	this->sampler->set_streaming_file("/home/edg/dev/aminal_juce/flocks/src/flocks_map.bin");
     this->sampler->prepare(sampleRate, samplesPerBlock);
 }
 
@@ -54,4 +56,4 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new Processor();
 }
 
-
+static_assert(Processor::Memory_Bytes >= sizeof(aminals::Sampler) + /*Some extra space*/ (1024 * 64));

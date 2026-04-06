@@ -21,10 +21,13 @@ public:
     
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) override;
-    void releaseResources() override; 
+    void releaseResources() override;
+
+	static constexpr size_t Memory_Bytes = aminals::Arena<>::const_align(4309216, sizeof(size_t));
     
 private:
-    using Arena = aminals::Arena<1024*1024>;
+
+    using Arena = aminals::Arena<Memory_Bytes>;
     Arena arena;
     Arena::Ptr<aminals::Parameter_List> params;
     Arena::Ptr<aminals::Sampler> sampler;
