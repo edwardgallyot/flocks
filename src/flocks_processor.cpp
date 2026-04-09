@@ -2,12 +2,13 @@
 #include "flocks_processor.hpp"
 #include "flocks_editor.hpp"
 #include "flocks_params.hpp"
+#include "flocks_map.h"
 
 using namespace flocks;
 
-Processor::Processor() :
-    arena(),
-    params(arena.make_unique<aminals::Parameter_List>(*this, juce::AudioProcessorValueTreeState::ParameterLayout {
+struct Processor::Impl
+{
+	Impl(Processor& p) : params(p, juce::AudioProcessorValueTreeState::ParameterLayout {
         make_param<Parameter::Bypass>(),
         make_param<Parameter::Volume>(),
         make_param<Parameter::Attack>(),
@@ -15,8 +16,19 @@ Processor::Processor() :
         make_param<Parameter::Reverb>(),
         make_param<Parameter::Cutoff>(),
         make_param<Parameter::Reverse>()
-    })),
-    sampler(arena.make_unique<aminals::Sampler>())
+		}),
+			 sampler()
+		{}
+	
+	aminals::Parameter_List params;
+    aminals::Sampler sampler;
+	FLOCKS_SAMPLE_COUNTS sample_counts;
+	FLOCKS_SAMPLE_VOICES voice_assignments;
+};
+
+Processor::Processor() :
+    arena(),
+    impl(arena.make_unique<flocks::Processor::Impl>(*this))
 {
 }
 
@@ -37,18 +49,25 @@ const juce::String Processor::get_name() const
 void Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // TODO(edg): Set this up so it takes a global location!
-	this->sampler->set_streaming_file("/home/edg/dev/aminal_juce/flocks/src/flocks_map.bin");
-    this->sampler->prepare(sampleRate, samplesPerBlock);
+	this->impl->sampler.set_streaming_file("/home/edg/dev/aminal_juce/flocks/src/flocks_map.bin");
+	this->impl->sampler.set_total_sizes(SAMPLE_MAP_TOTAL_SIZES, NUM_FLOCKS_SAMPLES);
+	this->impl->sampler.set_offsets(SAMPLE_MAP_OFFSETS, NUM_FLOCKS_SAMPLES);
+	this->impl->sampler.set_channel_strides(SAMPLE_MAP_CHANNEL_SIZES, NUM_FLOCKS_SAMPLES);
+	this->impl->sampler.set_midi_map(MIDI_MAP);
+	this->impl->sampler.set_sample_counts(this->impl->sample_counts.COUNTS, NUM_FLOCKS_SAMPLES);
+	this->impl->sampler.set_sample_names(SAMPLE_NAMES, NUM_FLOCKS_SAMPLES);
+	this->impl->sampler.set_voice_assignments(this->impl->voice_assignments.VOICES, NUM_FLOCKS_SAMPLES);
+    this->impl->sampler.prepare(sampleRate, samplesPerBlock);
 }
 
 void Processor::processBlock (juce::AudioBuffer<float>& samples, juce::MidiBuffer& midi)
 {
-    this->sampler->process(samples, midi);
+    this->impl->sampler.process(samples, midi);
 }
 
 void Processor::releaseResources()
 {
-    this->sampler->release();
+    this->impl->sampler.release();
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
@@ -56,4 +75,4 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new Processor();
 }
 
-static_assert(Processor::Memory_Bytes >= sizeof(aminals::Sampler) + /*Some extra space*/ (1024 * 64));
+static_assert(Processor::Memory_Bytes >= sizeof(flocks::Processor::Impl));
