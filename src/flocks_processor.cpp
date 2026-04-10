@@ -54,7 +54,6 @@ void Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
 	this->impl->sampler.set_offsets(SAMPLE_MAP_OFFSETS, NUM_FLOCKS_SAMPLES);
 	this->impl->sampler.set_channel_strides(SAMPLE_MAP_CHANNEL_SIZES, NUM_FLOCKS_SAMPLES);
 	this->impl->sampler.set_midi_map(MIDI_MAP);
-	this->impl->sampler.set_sample_counts(this->impl->sample_counts.COUNTS, NUM_FLOCKS_SAMPLES);
 	this->impl->sampler.set_sample_names(SAMPLE_NAMES, NUM_FLOCKS_SAMPLES);
 	this->impl->sampler.set_voice_assignments(this->impl->voice_assignments.VOICES, NUM_FLOCKS_SAMPLES);
     this->impl->sampler.prepare(sampleRate, samplesPerBlock);
