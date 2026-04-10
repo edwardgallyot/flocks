@@ -23,7 +23,7 @@ public:
     void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) override;
     void releaseResources() override;
 
-	static constexpr size_t Memory_Bytes = aminals::Arena<>::const_align(142579664, sizeof(size_t));
+	static constexpr size_t Memory_Bytes = aminals::Arena<>::const_align(50598912, sizeof(size_t));
     
 	struct Impl;
 	
