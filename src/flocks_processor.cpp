@@ -61,6 +61,8 @@ void Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
 void Processor::processBlock (juce::AudioBuffer<float>& samples, juce::MidiBuffer& midi)
 {
+	this->impl->sampler.set_release(this->impl->params.get_tree().getRawParameterValue(get_param_name(Parameter::Release))->load());
+	this->impl->sampler.set_attack(this->impl->params.get_tree().getRawParameterValue(get_param_name(Parameter::Attack))->load());
     this->impl->sampler.process(samples, midi);
 }
 

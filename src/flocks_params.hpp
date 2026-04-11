@@ -57,16 +57,16 @@ namespace flocks
                 return std::make_unique<juce::AudioParameterFloat>(
                     pid,
                     name,
-                    juce::NormalisableRange<float>(0.0f, 5.0f),
-                    0.1f
+                    juce::NormalisableRange<float>(0.1f, 5.0f),
+                    1.0f
                 );
 
             case Parameter::Release:
                 return std::make_unique<juce::AudioParameterFloat>(
                     pid,
                     name,
-                    juce::NormalisableRange<float>(0.0f, 5.0f),
-                    0.5f
+                    juce::NormalisableRange<float>(0.1f, 5.0f),
+                    1.0f
                 );
 
             case Parameter::Reverb:
