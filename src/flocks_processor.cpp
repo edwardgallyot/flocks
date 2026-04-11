@@ -1,4 +1,6 @@
 
+#include <juce_dsp/juce_dsp.h>
+
 #include "flocks_processor.hpp"
 #include "flocks_editor.hpp"
 #include "flocks_params.hpp"
@@ -26,6 +28,9 @@ struct Processor::Impl
 	FLOCKS_SAMPLE_VOICES voice_assignments;
 	juce::SmoothedValue<float> output_value;
 	std::vector<float> output_gain_buffer;
+
+	juce::dsp::ProcessorDuplicator<juce::dsp::StateVariableFilter::Filter<float>, juce::dsp::StateVariableFilter::Parameters<float>> filter;
+	double sample_rate;
 };
 
 Processor::Processor() :
@@ -61,6 +66,16 @@ void Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
     this->impl->sampler.prepare(sampleRate, samplesPerBlock);
 	this->impl->output_gain_buffer.resize((size_t)samplesPerBlock);
 	this->impl->output_value.reset(sampleRate, 0.1f);
+
+	juce::dsp::ProcessSpec process_spec{};
+    process_spec.sampleRate = sampleRate;
+    process_spec.maximumBlockSize = (unsigned int)samplesPerBlock;
+    process_spec.numChannels = 2;
+    this->impl->sample_rate = sampleRate;
+
+    this->impl->filter.reset();
+    this->impl->filter.prepare (process_spec);
+    this->impl->filter.state->type = juce::dsp::StateVariableFilter::Parameters<float>::Type::lowPass;
 }
 
 void Processor::processBlock (juce::AudioBuffer<float>& samples, juce::MidiBuffer& midi)
@@ -72,14 +87,24 @@ void Processor::processBlock (juce::AudioBuffer<float>& samples, juce::MidiBuffe
     this->impl->sampler.process(samples, midi);
 
 	this->impl->output_value.setTargetValue(this->impl->params.get_tree().getRawParameterValue(get_param_name(Parameter::Volume))->load());
+
+	auto cutoff = this->impl->params.get_tree().getRawParameterValue(get_param_name(Parameter::Cutoff))->load();
+	
+	juce::dsp::AudioBlock<float> audioBlock(samples);
+    this->impl->filter.state->setCutOffFrequency (this->impl->sample_rate, cutoff, 0.5f);
+    this->impl->filter.process (juce::dsp::ProcessContextReplacing<float> (audioBlock));
+	
 	for (int s = 0; s < samples.getNumSamples(); ++s)
 	{
 		this->impl->output_gain_buffer[(size_t)s] = this->impl->output_value.getNextValue();
 	}
+	
 	for (int c = 0; c < samples.getNumChannels(); ++c)
 	{
 		juce::FloatVectorOperations::multiply(samples.getWritePointer(c), this->impl->output_gain_buffer.data(), samples.getNumSamples());
 	}
+
+
 }
 
 void Processor::releaseResources()
