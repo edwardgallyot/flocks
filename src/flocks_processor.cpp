@@ -24,6 +24,8 @@ struct Processor::Impl
     aminals::Sampler sampler;
 	FLOCKS_SAMPLE_COUNTS sample_counts;
 	FLOCKS_SAMPLE_VOICES voice_assignments;
+	juce::SmoothedValue<float> output_value;
+	std::vector<float> output_gain_buffer;
 };
 
 Processor::Processor() :
@@ -57,13 +59,27 @@ void Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
 	this->impl->sampler.set_sample_names(SAMPLE_NAMES, NUM_FLOCKS_SAMPLES);
 	this->impl->sampler.set_voice_assignments(this->impl->voice_assignments.VOICES, NUM_FLOCKS_SAMPLES);
     this->impl->sampler.prepare(sampleRate, samplesPerBlock);
+	this->impl->output_gain_buffer.resize((size_t)samplesPerBlock);
+	this->impl->output_value.reset(sampleRate, 0.1f);
 }
 
 void Processor::processBlock (juce::AudioBuffer<float>& samples, juce::MidiBuffer& midi)
 {
 	this->impl->sampler.set_release(this->impl->params.get_tree().getRawParameterValue(get_param_name(Parameter::Release))->load());
 	this->impl->sampler.set_attack(this->impl->params.get_tree().getRawParameterValue(get_param_name(Parameter::Attack))->load());
+
+
     this->impl->sampler.process(samples, midi);
+
+	this->impl->output_value.setTargetValue(this->impl->params.get_tree().getRawParameterValue(get_param_name(Parameter::Volume))->load());
+	for (int s = 0; s < samples.getNumSamples(); ++s)
+	{
+		this->impl->output_gain_buffer[(size_t)s] = this->impl->output_value.getNextValue();
+	}
+	for (int c = 0; c < samples.getNumChannels(); ++c)
+	{
+		juce::FloatVectorOperations::multiply(samples.getWritePointer(c), this->impl->output_gain_buffer.data(), samples.getNumSamples());
+	}
 }
 
 void Processor::releaseResources()
