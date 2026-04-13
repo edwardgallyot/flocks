@@ -26,6 +26,7 @@ struct Processor::Impl
     aminals::Sampler sampler;
 	FLOCKS_SAMPLE_COUNTS sample_counts;
 	FLOCKS_SAMPLE_VOICES voice_assignments;
+	FLOCKS_PRE_FETCHERS pre_fetchers;
 	juce::SmoothedValue<float> output_value;
 	std::vector<float> output_gain_buffer;
 
@@ -63,6 +64,7 @@ void Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
 	this->impl->sampler.set_midi_map(MIDI_MAP);
 	this->impl->sampler.set_sample_names(SAMPLE_NAMES, NUM_FLOCKS_SAMPLES);
 	this->impl->sampler.set_voice_assignments(this->impl->voice_assignments.VOICES, NUM_FLOCKS_SAMPLES);
+	this->impl->sampler.set_pre_fetch_buffers(&this->impl->pre_fetchers.PRE_FETCHERS[0][0], NUM_FLOCKS_SAMPLES, NUM_PRE_FETCH_SAMPLES);
     this->impl->sampler.prepare(sampleRate, samplesPerBlock);
 	this->impl->output_gain_buffer.resize((size_t)samplesPerBlock);
 	this->impl->output_value.reset(sampleRate, 0.1f);

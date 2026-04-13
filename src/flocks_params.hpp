@@ -82,7 +82,7 @@ namespace flocks
                     pid,
                     name,
                     juce::NormalisableRange<float>(20.0f, 20000.0f, 0.0f, 0.5f),
-                    1000.0f
+                    20000.0f
                 );
 
             case Parameter::Reverse:
